@@ -17,62 +17,41 @@ WSRESTFUL Figaro DESCRIPTION EncodeUTF8("Serviço de extração de dados do Prot
 	WSDATA pedido			As String Optional
 	WSDATA cQuery			As String Optional
 
-	WSMETHOD GET DESCRIPTION "Retorna medição de contrato" WSSYNTAX "/TelePDF"  PATH "/TelePDF"
 	WSMETHOD POST DESCRIPTION "Retorna um JSON a partir de uma script SQL" WSSYNTAX "/TeleJson"  PATH "/TeleJson"
 END WSRESTFUL
 
-WSMETHOD GET  PATHPARAM cQuery WSSERVICE Figaro
-
-	local oJson
-	local ret
-
-	::SetContentType("application/json")
-	::SetHeader('Access-Control-Allow-Credentials' , "true")
-
-	oJson := JsonObject():new()
-	conout("Query:"+ValType(::cQuery))
-	cTelJson:= RepPrint(::cQuery)
-	
-	ret := oJson:fromJson(cTelJson)
-	CONOUT(ValType(ret)) 
-
-	if ValType(ret) == "U" 
-		Conout("JsonObject populado com sucesso")
-	else
-		Conout("Falha ao popular JsonObject. Erro: " + ret)
-	endif
-	IF 0==1
-		fRepPrint()
-	Endif
-
-	cJson := FWJsonSerialize(oJson, .F., .F., .T.)
-	::SetResponse(oJson)
-Return (.t.)
 
 
 WSMETHOD POST  PATHPARAM cQuery WSSERVICE Figaro
 
 	local oJson
 	local ret
+	Local oJsonReqst	:= NIl
+	//Local oJsonResp		:= JsonObject():New()
+	
+	
+	cBody	:= Self:GetContent()
+	If !Empty(cBody)
+		FWJsonDeserialize( cBody , @oJsonReqst ) 
+		cQuery		:= oJsonReqst:Query 
+	Else
+		conout("cBody vazio")
+	Endif 
+
 	::SetContentType("application/json")
 	::SetHeader('Access-Control-Allow-Credentials' , "true")
 
 	oJson := JsonObject():new()
-	conout("Query:"+ValType(::cQuery))
-	cTelJson:= RepPrint(::cQuery)
+	cTelJson:= RepPrint(cQuery)
 	
 	ret := oJson:fromJson(cTelJson)
-	CONOUT(ValType(ret)) 
-
+	
 	if ValType(ret) == "U" 
 		Conout("JsonObject populado com sucesso")
 	else
 		Conout("Falha ao popular JsonObject. Erro: " + ret)
 	endif
-	IF 0==1
-		fRepPrint()
-	Endif
-
+	
 	cJson := FWJsonSerialize(oJson, .F., .F., .T.)
 	::SetResponse(oJson)
 
